@@ -1,5 +1,5 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { ReportsService } from '../services/reports.service';
 import { ResumeReportsResponseDto } from '../dto/resume-reports-response.dto';
 import { ResumeReportsEnvelopeDto } from '../dto/resume-reports-envelope.dto';
@@ -14,8 +14,7 @@ export class ReportsController {
   @Get()
   @ApiOperation({
     summary: 'Get list of reports (static example)',
-    description:
-      'Returns a fixed list of reports matching the required response format.',
+    description: 'Returns a fixed list of reports matching the required response format.',
   })
   @ApiResponse({
     status: 200,
@@ -199,38 +198,47 @@ export class ReportsController {
     };
   }
 
+  // @Get('resume-reports')
+  // @ApiOperation({
+  //   summary: 'Get resume statistics of reports',
+  //   description:
+  //     'Returns a summary with statistics about reports including sent percentage, reports to generate, pending corrections, ready to send, and sent reports.',
+  // })
+  // @ApiResponse({
+  //   status: 200,
+  //   description: 'Successfully retrieved reports resume',
+  //   type: ResumeReportsResponseDto,
+  //   schema: {
+  //     example: {
+  //       sentReportsPercentage: 4.6,
+  //       reportsToGenerate: 31,
+  //       reportsPendingCorrection: 12,
+  //       reportsReadyToSend: 1801,
+  //       reportsSent: 90,
+  //     },
+  //   },
+  // })
+  // getResume(): ResumeReportsResponseDto {
+  //   return this.reportsService.getResume();
+  // }
+
   @Get('resume-reports')
   @ApiOperation({
     summary: 'Get resume statistics of reports',
     description:
-      'Returns a summary with statistics about reports including sent percentage, reports to generate, pending corrections, ready to send, and sent reports.',
+      'Returns a summary with statistics about reports including sent percentage, reports to generate, pending corrections, ready to send, and sent reports. Optionally filter by a specific reference date using YYYY-MM-DD format (day component is ignored, only year and month are used for filtering).',
+  })
+  @ApiQuery({
+    name: 'referenceDate',
+    required: false,
+    description:
+      'Optional reference date filter in YYYY-MM-DD format. Only year and month are used for filtering (day is ignored). Example: 2025-12-01 will filter for December 2025.',
+    type: String,
+    example: '2025-12-01',
   })
   @ApiResponse({
     status: 200,
     description: 'Successfully retrieved reports resume',
-    type: ResumeReportsResponseDto,
-    schema: {
-      example: {
-        sentReportsPercentage: 4.6,
-        reportsToGenerate: 31,
-        reportsPendingCorrection: 12,
-        reportsReadyToSend: 1801,
-        reportsSent: 90,
-      },
-    },
-  })
-  getResume(): ResumeReportsResponseDto {
-    return this.reportsService.getResume();
-  }
-  @Get('dashboard-resume')
-  @ApiOperation({
-    summary: 'Get dashboard resume statistics of reports',
-    description:
-      'Returns a resume envelope for dashboard consumption with sent percentage, reports to generate, pending corrections, ready to send, and sent reports.',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Successfully retrieved dashboard resume',
     type: ResumeReportsEnvelopeDto,
     schema: {
       example: {
@@ -244,57 +252,16 @@ export class ReportsController {
       },
     },
   })
-  getDashboardResume(): ResumeReportsEnvelopeDto {
-    return { response: this.reportsService.getResume() };
-  }
+  getResumeByReferenceDates(
+    @Query('referenceDate') referenceDate?: string,
+  ): ResumeReportsEnvelopeDto {
+    // Convert YYYY-MM-DD to MM/YYYY format if provided
+    let formattedDate: string | undefined;
+    if (referenceDate) {
+      const [year, month] = referenceDate.split('-');
+      formattedDate = `${month}/${year}`;
+    }
 
-  @Get('resume-reports-by-date')
-  @ApiOperation({
-    summary: 'Get resume statistics of reports grouped by reference date',
-    description:
-      'Returns a list of resume statistics grouped by reference date, providing detailed breakdown for each month/year with sent percentage, reports to generate, pending corrections, ready to send, sent reports, and total reports.',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Successfully retrieved reports resume grouped by reference date',
-    type: ResumeReportsByDateEnvelopeDto,
-    schema: {
-      example: {
-        response: {
-          records: [
-            {
-              referenceDate: '12/2025',
-              sentReportsPercentage: 4.6,
-              reportsToGenerate: 31,
-              reportsPendingCorrection: 12,
-              reportsReadyToSend: 1801,
-              reportsSent: 90,
-              totalReports: 1934,
-            },
-            {
-              referenceDate: '11/2025',
-              sentReportsPercentage: 5.2,
-              reportsToGenerate: 28,
-              reportsPendingCorrection: 14,
-              reportsReadyToSend: 1750,
-              reportsSent: 102,
-              totalReports: 1894,
-            },
-            {
-              referenceDate: '10/2025',
-              sentReportsPercentage: 3.8,
-              reportsToGenerate: 35,
-              reportsPendingCorrection: 10,
-              reportsReadyToSend: 1820,
-              reportsSent: 75,
-              totalReports: 1940,
-            },
-          ],
-        },
-      },
-    },
-  })
-  getResumeByReferenceDates(): ResumeReportsByDateEnvelopeDto {
-    return { response: this.reportsService.getResumeByReferenceDates() };
+    return { response: this.reportsService.getDashboardResume(formattedDate) };
   }
 }

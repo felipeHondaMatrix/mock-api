@@ -87,7 +87,7 @@ curl http://localhost:3000/health/check-generation-reports
 ### Reports Endpoints
 
 #### 3. GET /reports/resume-reports
-Retorna estatísticas resumidas dos relatórios.
+Retorna estatísticas resumidas dos relatórios. Aceita filtro opcional por `referenceDate` via query string (formato `YYYY-MM-DD`, dia ignorado).
 
 **Response:**
 ```json
@@ -103,6 +103,11 @@ Retorna estatísticas resumidas dos relatórios.
 **Exemplo de request:**
 ```bash
 curl http://localhost:3000/reports/resume-reports
+```
+
+**Exemplo com filtro:**
+```bash
+curl "http://localhost:3000/reports/resume-reports?referenceDate=2025-12-01"
 ```
 
 ---
