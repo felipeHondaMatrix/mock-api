@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 import { IsOptional, IsString, IsEnum, IsInt, Min, Max, IsArray } from 'class-validator';
 import { PaginationQueryDto } from '@/common/dto/pagination-query.dto';
 import { ReportStatus } from '@/common/enums/report-status.enum';
@@ -35,7 +35,12 @@ export class ReportsQueryDto extends PaginationQueryDto {
     required: false,
   })
   @IsOptional()
-  @Type(() => String)
+  @Transform(({ value }) => {
+    if (Array.isArray(value)) {
+      return value;
+    }
+    return value ? [value] : undefined;
+  })
   @IsArray()
   @IsEnum(ReportStatus, { each: true })
   status?: ReportStatus[];

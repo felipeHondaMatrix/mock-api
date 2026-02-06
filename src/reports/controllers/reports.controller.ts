@@ -5,6 +5,7 @@ import { ResumeReportsResponseDto } from '../dto/resume-reports-response.dto';
 import { ResumeReportsEnvelopeDto } from '../dto/resume-reports-envelope.dto';
 import { ResumeReportsByDateEnvelopeDto } from '../dto/resume-reports-by-date.dto';
 import { SimpleReportsEnvelopeDto } from '../dto/static-reports-response.dto';
+import { ReportsQueryDto } from '../dto/reports-query.dto';
 
 @ApiTags('reports')
 @Controller('reports')
@@ -13,8 +14,8 @@ export class ReportsController {
 
   @Get()
   @ApiOperation({
-    summary: 'Get list of reports (static example)',
-    description: 'Returns a fixed list of reports matching the required response format.',
+    summary: 'Get list of reports with pagination and filters',
+    description: 'Returns a paginated and filtered list of reports. Supports search, status filtering, reference date filtering, economic group filtering, and sorting.',
   })
   @ApiResponse({
     status: 200,
@@ -25,6 +26,7 @@ export class ReportsController {
         response: {
           records: [
             {
+              id: 1,
               uc: '5827401392',
               meterPoint: 'CEEC7OENTR102',
               nickName: 'COGERI',
@@ -33,6 +35,7 @@ export class ReportsController {
               status: 'Enviado',
             },
             {
+              id: 2,
               uc: '5827401392',
               meterPoint: 'CEEC7OENTR102',
               nickName: 'COGERI',
@@ -40,161 +43,34 @@ export class ReportsController {
               economicGroup: 'Matrix',
               status: 'Informações pendentes',
             },
-            {
-              uc: '5827401392',
-              meterPoint: 'CEEC7OENTR102',
-              nickName: 'COGERI',
-              referenceDate: '10/2025',
-              economicGroup: 'Matrix',
-              status: 'Enviado',
-            },
-            {
-              uc: '5827401392',
-              meterPoint: 'CEEC7OENTR102',
-              nickName: 'COGERI',
-              referenceDate: '09/2025',
-              economicGroup: 'Matrix',
-              status: 'Gerando relatório',
-            },
-            {
-              uc: '5827401392',
-              meterPoint: 'CEEC7OENTR102',
-              nickName: 'COGERI',
-              referenceDate: '08/2025',
-              economicGroup: 'Matrix',
-              status: 'Necessita análise',
-            },
-            {
-              uc: '5827401392',
-              meterPoint: 'CEEC7OENTR102',
-              nickName: 'COGERI',
-              referenceDate: '07/2025',
-              economicGroup: 'Matrix',
-              status: 'Erro no envio',
-            },
-            {
-              uc: '5827401392',
-              meterPoint: 'CEEC7OENTR102',
-              nickName: 'COGERI',
-              referenceDate: '06/2025',
-              economicGroup: 'Matrix',
-              status: 'Pronto para enviar',
-            },
-            {
-              uc: '5827401392',
-              meterPoint: 'CEEC7OENTR102',
-              nickName: 'COGERI',
-              referenceDate: '05/2025',
-              economicGroup: 'Matrix',
-              status: 'Erro no processamento',
-            },
-            {
-              uc: '5827401392',
-              meterPoint: 'CEEC7OENTR102',
-              nickName: 'COGERI',
-              referenceDate: '04/2025',
-              economicGroup: 'Matrix',
-              status: 'Enviado',
-            },
-            {
-              uc: '5827401392',
-              meterPoint: 'CEEC7OENTR102',
-              nickName: 'COGERI',
-              referenceDate: '03/2025',
-              economicGroup: 'Matrix',
-              status: 'Aguardando processamento',
-            },
           ],
+        },
+        paging: {
+          page: 1,
+          pageSize: 10,
+          totalPages: 20,
+          totalItems: 200,
         },
       },
     },
   })
-  listReports(): SimpleReportsEnvelopeDto {
+  listReports(@Query() query: ReportsQueryDto): SimpleReportsEnvelopeDto {
+    const result = this.reportsService.listReports(query);
+    
+    // Transform to SimpleReportsEnvelopeDto format
     return {
       response: {
-        records: [
-          {
-            uc: '5827401392',
-            meterPoint: 'CEEC7OENTR102',
-            nickName: 'COGERI',
-            referenceDate: '12/2025',
-            economicGroup: 'Matrix',
-            status: 'Enviado',
-          },
-          {
-            uc: '5827401392',
-            meterPoint: 'CEEC7OENTR102',
-            nickName: 'COGERI',
-            referenceDate: '11/2025',
-            economicGroup: 'Matrix',
-            status: 'Informações pendentes',
-          },
-          {
-            uc: '5827401392',
-            meterPoint: 'CEEC7OENTR102',
-            nickName: 'COGERI',
-            referenceDate: '10/2025',
-            economicGroup: 'Matrix',
-            status: 'Enviado',
-          },
-          {
-            uc: '5827401392',
-            meterPoint: 'CEEC7OENTR102',
-            nickName: 'COGERI',
-            referenceDate: '09/2025',
-            economicGroup: 'Matrix',
-            status: 'Gerando relatório',
-          },
-          {
-            uc: '5827401392',
-            meterPoint: 'CEEC7OENTR102',
-            nickName: 'COGERI',
-            referenceDate: '08/2025',
-            economicGroup: 'Matrix',
-            status: 'Necessita análise',
-          },
-          {
-            uc: '5827401392',
-            meterPoint: 'CEEC7OENTR102',
-            nickName: 'COGERI',
-            referenceDate: '07/2025',
-            economicGroup: 'Matrix',
-            status: 'Erro no envio',
-          },
-          {
-            uc: '5827401392',
-            meterPoint: 'CEEC7OENTR102',
-            nickName: 'COGERI',
-            referenceDate: '06/2025',
-            economicGroup: 'Matrix',
-            status: 'Pronto para enviar',
-          },
-          {
-            uc: '5827401392',
-            meterPoint: 'CEEC7OENTR102',
-            nickName: 'COGERI',
-            referenceDate: '05/2025',
-            economicGroup: 'Matrix',
-            status: 'Erro no processamento',
-          },
-          {
-            uc: '5827401392',
-            meterPoint: 'CEEC7OENTR102',
-            nickName: 'COGERI',
-            referenceDate: '04/2025',
-            economicGroup: 'Matrix',
-            status: 'Enviado',
-          },
-          {
-            uc: '5827401392',
-            meterPoint: 'CEEC7OENTR102',
-            nickName: 'COGERI',
-            referenceDate: '03/2025',
-            economicGroup: 'Matrix',
-            status: 'Aguardando processamento',
-          },
-        ],
+        records: result.response.records.map(record => ({
+          id: record.id,
+          uc: record.uc,
+          meterPoint: record.meterPoint,
+          nickName: record.nickname,
+          referenceDate: record.referenceDate,
+          economicGroup: record.economicGroup,
+          status: record.status,
+        })),
       },
+      paging: result.paging,
     };
   }
 

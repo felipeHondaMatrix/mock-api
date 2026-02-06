@@ -1,6 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { PagingResponseDto } from '@/common/dto/paging-response.dto';
 
 export class SimpleReportRecordDto {
+  @ApiProperty({ example: 1 })
+  id: number;
+
   @ApiProperty({ example: '5827401392' })
   uc: string;
 
@@ -28,4 +32,7 @@ export class SimpleReportsResponseDto {
 export class SimpleReportsEnvelopeDto {
   @ApiProperty({ type: () => SimpleReportsResponseDto })
   response: SimpleReportsResponseDto;
+
+  @ApiProperty({ type: () => PagingResponseDto })
+  paging: PagingResponseDto;
 }
