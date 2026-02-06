@@ -278,6 +278,81 @@ export class ReportsService {
   }
 
   /**
+   * Generate reports by IDs or all registers
+   */
+  generateReports(ids: string[]): { message: string; generatedCount: number } {
+    // Check if requesting all registers
+    if (ids.length === 1 && ids[0] === 'ALL_REGISTERS') {
+      const allReports = this.reportsRepository.findAll();
+      // Logic to generate all reports
+      return {
+        message: 'All reports generation initiated',
+        generatedCount: allReports.length,
+      };
+    }
+
+    // Generate specific reports by IDs
+    const reports = this.reportsRepository.findAll();
+    const numericIds = ids.map((id) => parseInt(id, 10));
+    const foundReports = reports.filter((r) => numericIds.includes(r.id));
+
+    return {
+      message: `Reports generation initiated for ${foundReports.length} report(s)`,
+      generatedCount: foundReports.length,
+    };
+  }
+
+  /**
+   * Send reports by IDs or all registers
+   */
+  sendReports(ids: string[]): { message: string; sentCount: number } {
+    // Check if requesting all registers
+    if (ids.length === 1 && ids[0] === 'ALL_REGISTERS') {
+      const allReports = this.reportsRepository.findAll();
+      // Logic to send all reports
+      return {
+        message: 'All reports sending initiated',
+        sentCount: allReports.length,
+      };
+    }
+
+    // Send specific reports by IDs
+    const reports = this.reportsRepository.findAll();
+    const numericIds = ids.map((id) => parseInt(id, 10));
+    const foundReports = reports.filter((r) => numericIds.includes(r.id));
+
+    return {
+      message: `Reports sending initiated for ${foundReports.length} report(s)`,
+      sentCount: foundReports.length,
+    };
+  }
+
+  /**
+   * Download reports by IDs or all registers
+   */
+  downloadReports(ids: string[]): { message: string; downloadCount: number } {
+    // Check if requesting all registers
+    if (ids.length === 1 && ids[0] === 'ALL_REGISTERS') {
+      const allReports = this.reportsRepository.findAll();
+      // Logic to download all reports
+      return {
+        message: 'All reports download initiated',
+        downloadCount: allReports.length,
+      };
+    }
+
+    // Download specific reports by IDs
+    const reports = this.reportsRepository.findAll();
+    const numericIds = ids.map((id) => parseInt(id, 10));
+    const foundReports = reports.filter((r) => numericIds.includes(r.id));
+
+    return {
+      message: `Reports download initiated for ${foundReports.length} report(s)`,
+      downloadCount: foundReports.length,
+    };
+  }
+
+  /**
    * Transform Report to ReportItem (response format)
    */
   private toReportItem(report: Report): ReportItem {

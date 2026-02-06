@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Post, Query, Body } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { ReportsService } from '../services/reports.service';
 import { ResumeReportsResponseDto } from '../dto/resume-reports-response.dto';
@@ -6,6 +6,7 @@ import { ResumeReportsEnvelopeDto } from '../dto/resume-reports-envelope.dto';
 import { ResumeReportsByDateEnvelopeDto } from '../dto/resume-reports-by-date.dto';
 import { SimpleReportsEnvelopeDto } from '../dto/static-reports-response.dto';
 import { ReportsQueryDto } from '../dto/reports-query.dto';
+import { GenerateReportsRequestDto } from '../dto/generate-reports-request.dto';
 
 @ApiTags('reports')
 @Controller('reports')
@@ -139,5 +140,71 @@ export class ReportsController {
     }
 
     return { response: this.reportsService.getDashboardResume(formattedDate) };
+  }
+
+  @Post('generate')
+  @ApiOperation({
+    summary: 'Generate reports',
+    description:
+      'Generate reports by specific IDs or all registers. Pass ["ALL_REGISTERS"] to generate all reports, or pass an array of report IDs like ["2", "3"].',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Reports generation initiated successfully',
+    schema: {
+      example: {
+        message: 'Reports generation initiated for 2 report(s)',
+        generatedCount: 2,
+      },
+    },
+  })
+  generateReports(
+    @Body() body: GenerateReportsRequestDto,
+  ): { message: string; generatedCount: number } {
+    return this.reportsService.generateReports(body.ids);
+  }
+
+  @Post('send')
+  @ApiOperation({
+    summary: 'Send reports',
+    description:
+      'Send reports by specific IDs or all registers. Pass ["ALL_REGISTERS"] to send all reports, or pass an array of report IDs like ["2", "3"].',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Reports sending initiated successfully',
+    schema: {
+      example: {
+        message: 'Reports sending initiated for 2 report(s)',
+        sentCount: 2,
+      },
+    },
+  })
+  sendReports(
+    @Body() body: GenerateReportsRequestDto,
+  ): { message: string; sentCount: number } {
+    return this.reportsService.sendReports(body.ids);
+  }
+
+  @Post('download')
+  @ApiOperation({
+    summary: 'Download reports',
+    description:
+      'Download reports by specific IDs or all registers. Pass ["ALL_REGISTERS"] to download all reports, or pass an array of report IDs like ["2", "3"].',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Reports download initiated successfully',
+    schema: {
+      example: {
+        message: 'Reports download initiated for 2 report(s)',
+        downloadCount: 2,
+      },
+    },
+  })
+  downloadReports(
+    @Body() body: GenerateReportsRequestDto,
+  ): { message: string; downloadCount: number } {
+    return this.reportsService.downloadReports(body.ids);
   }
 }
