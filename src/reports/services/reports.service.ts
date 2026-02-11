@@ -222,14 +222,16 @@ export class ReportsService {
       filtered = filtered.filter((report) => statusArray.includes(report.status));
     }
 
-    // Filter by reference month
-    if (query.referenceMonth !== undefined) {
-      filtered = filtered.filter((report) => report.referenceMonth === query.referenceMonth);
-    }
+    // Filter by reference date (YYYY-MM-DD format)
+    if (query.referenceDate) {
+      const [year, month] = query.referenceDate.split('-');
+      const referenceMonth = parseInt(month, 10);
+      const referenceYear = parseInt(year, 10);
 
-    // Filter by reference year
-    if (query.referenceYear !== undefined) {
-      filtered = filtered.filter((report) => report.referenceYear === query.referenceYear);
+      filtered = filtered.filter(
+        (report) =>
+          report.referenceMonth === referenceMonth && report.referenceYear === referenceYear,
+      );
     }
 
     // Filter by economic group

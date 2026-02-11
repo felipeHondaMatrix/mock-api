@@ -2,25 +2,25 @@ import { ApiProperty } from '@nestjs/swagger';
 import { PagingResponseDto } from '@/common/dto/paging-response.dto';
 
 export class SimpleReportRecordDto {
-  @ApiProperty({ example: 1 })
+  @ApiProperty({ example: 200 })
   id: number;
 
-  @ApiProperty({ example: '5827401392' })
+  @ApiProperty({ example: 'UC-SP-000200' })
   uc: string;
 
-  @ApiProperty({ example: 'CEEC7OENTR102' })
+  @ApiProperty({ example: 'MP-00000200' })
   meterPoint: string;
 
-  @ApiProperty({ example: 'COGERI', description: 'Display name (camel-cased key as required)' })
+  @ApiProperty({ example: 'Unidade Shopping 1', description: 'Display name (camel-cased key as required)' })
   nickName: string;
 
-  @ApiProperty({ example: '12/2025', description: 'Format: MM/YYYY' })
+  @ApiProperty({ example: '10/2025', description: 'Format: MM/YYYY' })
   referenceDate: string;
 
-  @ApiProperty({ example: 'Matrix' })
+  @ApiProperty({ example: 'Grupo Econômico A' })
   economicGroup: string;
 
-  @ApiProperty({ example: 'Enviado' })
+  @ApiProperty({ example: 'READY_TO_SEND' })
   status: string;
 }
 

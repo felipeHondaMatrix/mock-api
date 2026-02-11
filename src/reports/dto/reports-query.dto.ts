@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Type, Transform } from 'class-transformer';
-import { IsOptional, IsString, IsEnum, IsInt, Min, Max, IsArray } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsOptional, IsString, IsEnum, IsArray, Matches } from 'class-validator';
 import { PaginationQueryDto } from '@/common/dto/pagination-query.dto';
 import { ReportStatus } from '@/common/enums/report-status.enum';
 
@@ -19,7 +19,7 @@ export enum SortOrder {
 export class ReportsQueryDto extends PaginationQueryDto {
   @ApiProperty({
     description: 'Search term for UC, meter point, or nickname (case-insensitive contains)',
-    example: 'SP-001',
+    example: 'SP',
     required: false,
   })
   @IsOptional()
@@ -46,36 +46,20 @@ export class ReportsQueryDto extends PaginationQueryDto {
   status?: ReportStatus[];
 
   @ApiProperty({
-    description: 'Filter by reference month (1-12)',
-    example: 1,
-    minimum: 1,
-    maximum: 12,
+    description: 'Filter by reference date in YYYY-MM-DD format. Only year and month components are used for filtering (day is ignored).',
+    example: '2025-10-01',
     required: false,
   })
   @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  @Max(12)
-  referenceMonth?: number;
-
-  @ApiProperty({
-    description: 'Filter by reference year',
-    example: 2024,
-    minimum: 2000,
-    maximum: 2100,
-    required: false,
+  @IsString()
+  @Matches(/^\d{4}-\d{2}-\d{2}$/, { 
+    message: 'referenceDate must be in YYYY-MM-DD format' 
   })
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(2000)
-  @Max(2100)
-  referenceYear?: number;
+  referenceDate?: string;
 
   @ApiProperty({
     description: 'Filter by economic group (contains, case-insensitive)',
-    example: 'Group A',
+    example: 'Grupo Econômico',
     required: false,
   })
   @IsOptional()

@@ -174,42 +174,25 @@ describe('ReportsService', () => {
     });
 
     describe('reference date filtering', () => {
-      it('should filter by referenceMonth', () => {
+      it('should filter by referenceDate (YYYY-MM-DD format)', () => {
         const query: ReportsQueryDto = {
           page: 1,
           pageSize: 100,
-          referenceMonth: 2,
+          referenceDate: '2026-02-01',
         };
 
         const result = service.listReports(query);
 
         result.response.records.forEach((record) => {
-          const [month] = record.referenceDate.split('/');
-          expect(month).toBe('02');
+          expect(record.referenceDate).toBe('02/2026');
         });
       });
 
-      it('should filter by referenceYear', () => {
+      it('should filter by referenceDate and ignore day component', () => {
         const query: ReportsQueryDto = {
           page: 1,
           pageSize: 100,
-          referenceYear: 2026,
-        };
-
-        const result = service.listReports(query);
-
-        result.response.records.forEach((record) => {
-          const [, year] = record.referenceDate.split('/');
-          expect(year).toBe('2026');
-        });
-      });
-
-      it('should filter by both referenceMonth and referenceYear', () => {
-        const query: ReportsQueryDto = {
-          page: 1,
-          pageSize: 100,
-          referenceMonth: 2,
-          referenceYear: 2026,
+          referenceDate: '2026-02-15', // Day should be ignored
         };
 
         const result = service.listReports(query);
