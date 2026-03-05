@@ -142,7 +142,7 @@ export class ReportsController {
     return { response: this.reportsService.getDashboardResume(formattedDate) };
   }
 
-  @Post('generate')
+  @Post('generate-reports')
   @ApiOperation({
     summary: 'Generate reports',
     description:
