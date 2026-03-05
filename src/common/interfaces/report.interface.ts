@@ -1,25 +1,16 @@
 import { ReportStatus } from '../enums/report-status.enum';
 
 export interface Report {
-  id: number;
-  uc: string;
-  meterPoint: string;
+  correlationId: string;
+  codeUc: string;
   nickname: string;
-  referenceMonth: number; // 1-12
-  referenceYear: number; // YYYY
+  referenceDate: string; // "YYYY-MM-DD"
   economicGroup: string;
-  status: ReportStatus;
-  createdAt: Date;
-  updatedAt: Date;
+  reportStatus: ReportStatus;
+  updatedAt: string;
+  ingestedAt: string;
+  builtAt: string;
+  sentAt: string;
 }
 
-export interface ReportItem {
-  id: number;
-  uc: string;
-  meterPoint: string;
-  nickname: string;
-  referenceDate: string; // "MM/YYYY"
-  economicGroup: string;
-  status: ReportStatus;
-  url: string;
-}
+export type ReportItem = Report;

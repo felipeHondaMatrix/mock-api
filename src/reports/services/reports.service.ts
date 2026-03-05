@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ReportsRepository } from '../repositories/reports.repository';
 import { ReportsQueryDto, SortBy, SortOrder } from '../dto/reports-query.dto';
-import { Report, ReportItem } from '@/common/interfaces/report.interface';
+import { Report } from '@/common/interfaces/report.interface';
 import { ReportStatus } from '@/common/enums/report-status.enum';
 import { ResumeReportsResponseDto } from '../dto/resume-reports-response.dto';
 import { ResumeReportByDateDto, ResumeReportsByDateResponseDto } from '../dto/resume-reports-by-date.dto';
@@ -24,26 +24,21 @@ export class ReportsService {
     reports = this.applySorting(reports, query.sortBy, query.sortOrder);
 
     // Calculate pagination
-    const totalItems = reports.length;
-    const totalPages = Math.ceil(totalItems / query.pageSize);
-    const startIndex = (query.page - 1) * query.pageSize;
+    const totalElements = reports.length;
+    const totalPages = Math.ceil(totalElements / query.pageSize);
+    const startIndex = query.page * query.pageSize;
     const endIndex = startIndex + query.pageSize;
 
     // Get paginated records
     const paginatedReports = reports.slice(startIndex, endIndex);
 
-    // Transform to response format
-    const records = paginatedReports.map((report) => this.toReportItem(report));
-
     return {
-      response: {
-        records,
-      },
+      response: paginatedReports,
       paging: {
         page: query.page,
-        pageSize: query.pageSize,
+        elementsPerPage: query.pageSize,
         totalPages,
-        totalItems,
+        totalElements,
       },
     };
   }
@@ -56,22 +51,26 @@ export class ReportsService {
     const total = reports.length;
 
     const reportsToGenerate = reports.filter(
-      (r) => r.status === ReportStatus.READY_TO_GENERATE,
+      (r) => r.reportStatus === ReportStatus.READY_TO_GENERATE,
     ).length;
 
     const reportsPendingCorrection = reports.filter(
       (r) =>
-        r.status === ReportStatus.INFORMATION_PENDING ||
-        r.status === ReportStatus.NEEDS_ANALYSIS,
+        r.reportStatus === ReportStatus.PENDING_INFORMATION ||
+        r.reportStatus === ReportStatus.NEED_ANALYSIS,
     ).length;
 
     const reportsReadyToSend = reports.filter(
-      (r) => r.status === ReportStatus.READY_TO_SEND,
+      (r) => r.reportStatus === ReportStatus.READY_TO_SEND,
     ).length;
 
-    const reportsSent = reports.filter((r) => r.status === ReportStatus.SENT).length;
-
-    const sentReportsPercentage = total > 0 ? parseFloat(((reportsSent / total) * 100).toFixed(1)) : 0;
+    const reportsSent = reports.filter(
+      (r) => r.reportStatus === ReportStatus.SENT,
+    ).length;
+    const sentReportsPercentage =
+      total > 0
+        ? parseFloat(((reportsSent / total) * 100).toFixed(1))
+        : 0;
 
     return {
       sentReportsPercentage,
@@ -88,37 +87,36 @@ export class ReportsService {
   getDashboardResume(referenceDate?: string): ResumeReportsResponseDto {
     let reports = this.reportsRepository.findAll();
 
-    // Filter by reference date if provided (format: MM/YYYY)
+    // Filter by reference date if provided (format: MM/YYYY -> convert to YYYY-MM prefix)
     if (referenceDate) {
       const [month, year] = referenceDate.split('/');
-      const referenceMonth = parseInt(month, 10);
-      const referenceYear = parseInt(year, 10);
-
-      reports = reports.filter(
-        (r) =>
-          r.referenceMonth === referenceMonth && r.referenceYear === referenceYear,
-      );
+      const prefix = `${year}-${month}`;
+      reports = reports.filter((r) => r.referenceDate.startsWith(prefix));
     }
 
     const total = reports.length;
 
     const reportsToGenerate = reports.filter(
-      (r) => r.status === ReportStatus.READY_TO_GENERATE,
+      (r) => r.reportStatus === ReportStatus.READY_TO_GENERATE,
     ).length;
 
     const reportsPendingCorrection = reports.filter(
       (r) =>
-        r.status === ReportStatus.INFORMATION_PENDING ||
-        r.status === ReportStatus.NEEDS_ANALYSIS,
+        r.reportStatus === ReportStatus.PENDING_INFORMATION ||
+        r.reportStatus === ReportStatus.NEED_ANALYSIS,
     ).length;
 
     const reportsReadyToSend = reports.filter(
-      (r) => r.status === ReportStatus.READY_TO_SEND,
+      (r) => r.reportStatus === ReportStatus.READY_TO_SEND,
     ).length;
 
-    const reportsSent = reports.filter((r) => r.status === ReportStatus.SENT).length;
-
-    const sentReportsPercentage = total > 0 ? parseFloat(((reportsSent / total) * 100).toFixed(1)) : 0;
+    const reportsSent = reports.filter(
+      (r) => r.reportStatus === ReportStatus.SENT,
+    ).length;
+    const sentReportsPercentage =
+      total > 0
+        ? parseFloat(((reportsSent / total) * 100).toFixed(1))
+        : 0;
 
     return {
       sentReportsPercentage,
@@ -135,17 +133,17 @@ export class ReportsService {
   getResumeByReferenceDates(): ResumeReportsByDateResponseDto {
     const reports = this.reportsRepository.findAll();
 
-    // Group reports by reference date
+    // Group reports by reference date (year-month prefix)
     const groupedByDate = new Map<string, Report[]>();
 
     reports.forEach((report) => {
-      const month = String(report.referenceMonth).padStart(2, '0');
-      const referenceDate = `${month}/${report.referenceYear}`;
+      const [year, month] = report.referenceDate.split('-');
+      const key = `${month}/${year}`;
 
-      if (!groupedByDate.has(referenceDate)) {
-        groupedByDate.set(referenceDate, []);
+      if (!groupedByDate.has(key)) {
+        groupedByDate.set(key, []);
       }
-      groupedByDate.get(referenceDate)!.push(report);
+      groupedByDate.get(key)!.push(report);
     });
 
     // Calculate statistics for each reference date
@@ -154,24 +152,26 @@ export class ReportsService {
         const total = reportsForDate.length;
 
         const reportsToGenerate = reportsForDate.filter(
-          (r) => r.status === ReportStatus.READY_TO_GENERATE,
+          (r) => r.reportStatus === ReportStatus.READY_TO_GENERATE,
         ).length;
 
         const reportsPendingCorrection = reportsForDate.filter(
           (r) =>
-            r.status === ReportStatus.INFORMATION_PENDING ||
-            r.status === ReportStatus.NEEDS_ANALYSIS,
+            r.reportStatus === ReportStatus.PENDING_INFORMATION ||
+            r.reportStatus === ReportStatus.NEED_ANALYSIS,
         ).length;
 
         const reportsReadyToSend = reportsForDate.filter(
-          (r) => r.status === ReportStatus.READY_TO_SEND,
+          (r) => r.reportStatus === ReportStatus.READY_TO_SEND,
         ).length;
 
         const reportsSent = reportsForDate.filter(
-          (r) => r.status === ReportStatus.SENT,
+          (r) => r.reportStatus === ReportStatus.SENT,
         ).length;
-
-        const sentReportsPercentage = total > 0 ? parseFloat(((reportsSent / total) * 100).toFixed(1)) : 0;
+        const sentReportsPercentage =
+          total > 0
+            ? parseFloat(((reportsSent / total) * 100).toFixed(1))
+            : 0;
 
         return {
           referenceDate,
@@ -201,13 +201,12 @@ export class ReportsService {
   private applyFilters(reports: Report[], query: ReportsQueryDto): Report[] {
     let filtered = [...reports];
 
-    // Filter by search (UC, meterPoint, or nickname)
+    // Filter by search (codeUc or nickname)
     if (query.search) {
       const searchLower = query.search.toLowerCase();
       filtered = filtered.filter(
         (report) =>
-          report.uc.toLowerCase().includes(searchLower) ||
-          report.meterPoint.toLowerCase().includes(searchLower) ||
+          report.codeUc.toLowerCase().includes(searchLower) ||
           report.nickname.toLowerCase().includes(searchLower),
       );
     }
@@ -219,18 +218,17 @@ export class ReportsService {
         ? query.status.flatMap((s) => (typeof s === 'string' && s.includes(',') ? s.split(',') : s))
         : [query.status];
 
-      filtered = filtered.filter((report) => statusArray.includes(report.status));
+      filtered = filtered.filter((report) =>
+        statusArray.includes(report.reportStatus),
+      );
     }
 
-    // Filter by reference date (YYYY-MM-DD format)
+    // Filter by reference date (YYYY-MM-DD format, only year and month used)
     if (query.referenceDate) {
       const [year, month] = query.referenceDate.split('-');
-      const referenceMonth = parseInt(month, 10);
-      const referenceYear = parseInt(year, 10);
-
-      filtered = filtered.filter(
-        (report) =>
-          report.referenceMonth === referenceMonth && report.referenceYear === referenceYear,
+      const prefix = `${year}-${month}`;
+      filtered = filtered.filter((report) =>
+        report.referenceDate.startsWith(prefix),
       );
     }
 
@@ -255,22 +253,20 @@ export class ReportsService {
       let comparison = 0;
 
       switch (sortBy) {
-        case SortBy.ID:
-          comparison = a.id - b.id;
+        case SortBy.CORRELATION_ID:
+          comparison = a.correlationId.localeCompare(b.correlationId);
           break;
         case SortBy.REFERENCE_DATE:
-          const dateA = a.referenceYear * 100 + a.referenceMonth;
-          const dateB = b.referenceYear * 100 + b.referenceMonth;
-          comparison = dateA - dateB;
+          comparison = a.referenceDate.localeCompare(b.referenceDate);
           break;
         case SortBy.NICKNAME:
           comparison = a.nickname.localeCompare(b.nickname);
           break;
-        case SortBy.STATUS:
-          comparison = a.status.localeCompare(b.status);
+        case SortBy.REPORT_STATUS:
+          comparison = a.reportStatus.localeCompare(b.reportStatus);
           break;
         default:
-          comparison = a.id - b.id;
+          comparison = a.correlationId.localeCompare(b.correlationId);
       }
 
       return sortOrder === SortOrder.ASC ? comparison : -comparison;
@@ -286,17 +282,15 @@ export class ReportsService {
     // Check if requesting all registers
     if (ids.length === 1 && ids[0] === 'ALL_REGISTERS') {
       const allReports = this.reportsRepository.findAll();
-      // Logic to generate all reports
       return {
         message: 'All reports generation initiated',
         generatedCount: allReports.length,
       };
     }
 
-    // Generate specific reports by IDs
+    // Generate specific reports by correlationId
     const reports = this.reportsRepository.findAll();
-    const numericIds = ids.map((id) => parseInt(id, 10));
-    const foundReports = reports.filter((r) => numericIds.includes(r.id));
+    const foundReports = reports.filter((r) => ids.includes(r.correlationId));
 
     return {
       message: `Reports generation initiated for ${foundReports.length} report(s)`,
@@ -305,23 +299,21 @@ export class ReportsService {
   }
 
   /**
-   * Send reports by IDs or all registers
+   * Send reports by correlationIds or all registers
    */
   sendReports(ids: string[]): { message: string; sentCount: number } {
     // Check if requesting all registers
     if (ids.length === 1 && ids[0] === 'ALL_REGISTERS') {
       const allReports = this.reportsRepository.findAll();
-      // Logic to send all reports
       return {
         message: 'All reports sending initiated',
         sentCount: allReports.length,
       };
     }
 
-    // Send specific reports by IDs
+    // Send specific reports by correlationId
     const reports = this.reportsRepository.findAll();
-    const numericIds = ids.map((id) => parseInt(id, 10));
-    const foundReports = reports.filter((r) => numericIds.includes(r.id));
+    const foundReports = reports.filter((r) => ids.includes(r.correlationId));
 
     return {
       message: `Reports sending initiated for ${foundReports.length} report(s)`,
@@ -330,46 +322,25 @@ export class ReportsService {
   }
 
   /**
-   * Download reports by IDs or all registers
+   * Download reports by correlationIds or all registers
    */
   downloadReports(ids: string[]): { message: string; downloadCount: number } {
     // Check if requesting all registers
     if (ids.length === 1 && ids[0] === 'ALL_REGISTERS') {
       const allReports = this.reportsRepository.findAll();
-      // Logic to download all reports
       return {
         message: 'All reports download initiated',
         downloadCount: allReports.length,
       };
     }
 
-    // Download specific reports by IDs
+    // Download specific reports by correlationId
     const reports = this.reportsRepository.findAll();
-    const numericIds = ids.map((id) => parseInt(id, 10));
-    const foundReports = reports.filter((r) => numericIds.includes(r.id));
+    const foundReports = reports.filter((r) => ids.includes(r.correlationId));
 
     return {
       message: `Reports download initiated for ${foundReports.length} report(s)`,
       downloadCount: foundReports.length,
-    };
-  }
-
-  /**
-   * Transform Report to ReportItem (response format)
-   */
-  private toReportItem(report: Report): ReportItem {
-    const month = String(report.referenceMonth).padStart(2, '0');
-    const referenceDate = `${month}/${report.referenceYear}`;
-
-    return {
-      id: report.id,
-      uc: report.uc,
-      meterPoint: report.meterPoint,
-      nickname: report.nickname,
-      referenceDate,
-      economicGroup: report.economicGroup,
-      status: report.status,
-      url: `https://api.matrixenergia.com/reports/${report.id}`,
     };
   }
 }

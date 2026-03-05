@@ -23,42 +23,43 @@ describe('ReportsService', () => {
 
   describe('listReports', () => {
     describe('pagination', () => {
-      it('should return correct totalPages and totalItems', () => {
+      it('should return correct totalPages and totalElements', () => {
         const query: ReportsQueryDto = {
-          page: 1,
+          page: 0,
           pageSize: 10,
         };
 
         const result = service.listReports(query);
 
-        expect(result.paging.totalItems).toBe(200);
+        expect(result.paging.totalElements).toBe(200);
         expect(result.paging.totalPages).toBe(20);
-        expect(result.paging.page).toBe(1);
-        expect(result.paging.pageSize).toBe(10);
+        expect(result.paging.page).toBe(0);
+        expect(result.paging.elementsPerPage).toBe(10);
       });
 
       it('should return correct number of records per page', () => {
         const query: ReportsQueryDto = {
-          page: 1,
+          page: 0,
           pageSize: 25,
         };
 
         const result = service.listReports(query);
 
-        expect(result.response.records).toHaveLength(25);
+        expect(result.response).toHaveLength(25);
         expect(result.paging.totalPages).toBe(8);
       });
 
       it('should handle last page with fewer items', () => {
+        // 200 items, pageSize 15 → totalPages = 14 (pages 0-13), last page has 5 items
         const query: ReportsQueryDto = {
-          page: 20,
+          page: 13,
           pageSize: 15,
         };
 
         const result = service.listReports(query);
 
-        expect(result.response.records.length).toBeLessThanOrEqual(15);
-        expect(result.paging.totalItems).toBe(200);
+        expect(result.response.length).toBeLessThanOrEqual(15);
+        expect(result.paging.totalElements).toBe(200);
       });
 
       it('should handle page beyond total pages (empty result)', () => {
@@ -69,195 +70,203 @@ describe('ReportsService', () => {
 
         const result = service.listReports(query);
 
-        expect(result.response.records).toHaveLength(0);
+        expect(result.response).toHaveLength(0);
         expect(result.paging.totalPages).toBe(20);
       });
     });
 
-    describe('filtering by status', () => {
-      it('should filter reports by single status', () => {
+    describe('filtering by reportStatus', () => {
+      it('should filter reports by single reportStatus', () => {
         const query: ReportsQueryDto = {
-          page: 1,
+          page: 0,
           pageSize: 100,
-          status: [ReportStatus.SENT],
+          status: [ReportStatus.READY_TO_SEND],
         };
 
         const result = service.listReports(query);
 
-        result.response.records.forEach((record) => {
-          expect(record.status).toBe(ReportStatus.SENT);
+        result.response.forEach((record) => {
+          expect(record.reportStatus).toBe(ReportStatus.READY_TO_SEND);
         });
       });
 
       it('should filter reports by multiple statuses', () => {
         const query: ReportsQueryDto = {
-          page: 1,
+          page: 0,
           pageSize: 100,
-          status: [ReportStatus.SENT, ReportStatus.READY_TO_SEND],
+          status: [ReportStatus.QUEUED_FOR_SENDING, ReportStatus.READY_TO_SEND],
         };
 
         const result = service.listReports(query);
 
-        result.response.records.forEach((record) => {
-          expect([ReportStatus.SENT, ReportStatus.READY_TO_SEND]).toContain(record.status);
+        result.response.forEach((record) => {
+          expect([
+            ReportStatus.QUEUED_FOR_SENDING,
+            ReportStatus.READY_TO_SEND,
+          ]).toContain(record.reportStatus);
         });
       });
 
-      it('should return empty when filtering by non-existent status combination', () => {
-        // First get all reports with SENT status to ensure test is valid
+      it('should return results when filtering by READY_TO_GENERATE', () => {
         const allReports = repository.findAll();
-        const sentReports = allReports.filter((r) => r.status === ReportStatus.SENT);
+        const eligible = allReports.filter(
+          (r) => r.reportStatus === ReportStatus.READY_TO_GENERATE,
+        );
 
-        if (sentReports.length > 0) {
+        if (eligible.length > 0) {
           const query: ReportsQueryDto = {
-            page: 1,
+            page: 0,
             pageSize: 100,
-            status: [ReportStatus.SENT],
+            status: [ReportStatus.READY_TO_GENERATE],
           };
 
           const result = service.listReports(query);
-          expect(result.response.records.length).toBeGreaterThan(0);
+          expect(result.response.length).toBeGreaterThan(0);
         }
       });
     });
 
     describe('search functionality', () => {
-      it('should search by UC (case-insensitive)', () => {
+      it('should search by codeUc (case-insensitive)', () => {
         const reports = repository.findAll();
         const firstReport = reports[0];
-        const ucPart = firstReport.uc.substring(0, 5).toLowerCase();
+        const part = firstReport.codeUc.substring(0, 5).toLowerCase();
 
         const query: ReportsQueryDto = {
-          page: 1,
+          page: 0,
           pageSize: 100,
-          search: ucPart,
+          search: part,
         };
 
         const result = service.listReports(query);
 
-        expect(result.response.records.length).toBeGreaterThan(0);
-        result.response.records.forEach((record) => {
-          expect(record.uc.toLowerCase()).toContain(ucPart);
+        expect(result.response.length).toBeGreaterThan(0);
+        result.response.forEach((record) => {
+          expect(record.codeUc.toLowerCase()).toContain(part);
         });
-      });
-
-      it('should search by meterPoint (case-insensitive)', () => {
-        const reports = repository.findAll();
-        const firstReport = reports[0];
-        const meterPointPart = firstReport.meterPoint.substring(0, 4);
-
-        const query: ReportsQueryDto = {
-          page: 1,
-          pageSize: 100,
-          search: meterPointPart,
-        };
-
-        const result = service.listReports(query);
-
-        expect(result.response.records.length).toBeGreaterThan(0);
       });
 
       it('should search by nickname (case-insensitive)', () => {
         const query: ReportsQueryDto = {
-          page: 1,
+          page: 0,
           pageSize: 100,
-          search: 'unidade',
+          search: 'usina',
         };
 
         const result = service.listReports(query);
 
-        expect(result.response.records.length).toBeGreaterThan(0);
-        result.response.records.forEach((record) => {
-          expect(record.nickname.toLowerCase()).toContain('unidade');
+        expect(result.response.length).toBeGreaterThan(0);
+        result.response.forEach((record) => {
+          expect(record.nickname.toLowerCase()).toContain('usina');
         });
       });
     });
 
     describe('reference date filtering', () => {
       it('should filter by referenceDate (YYYY-MM-DD format)', () => {
-        const query: ReportsQueryDto = {
-          page: 1,
-          pageSize: 100,
-          referenceDate: '2026-02-01',
-        };
+        const allReports = repository.findAll();
+        const targetPrefix = '2026-02';
+        const hasMatches = allReports.some((r) =>
+          r.referenceDate.startsWith(targetPrefix),
+        );
 
-        const result = service.listReports(query);
+        if (hasMatches) {
+          const query: ReportsQueryDto = {
+            page: 0,
+            pageSize: 100,
+            referenceDate: '2026-02-01',
+          };
 
-        result.response.records.forEach((record) => {
-          expect(record.referenceDate).toBe('02/2026');
-        });
+          const result = service.listReports(query);
+
+          result.response.forEach((record) => {
+            expect(record.referenceDate.startsWith('2026-02')).toBe(true);
+          });
+        }
       });
 
-      it('should filter by referenceDate and ignore day component', () => {
-        const query: ReportsQueryDto = {
-          page: 1,
-          pageSize: 100,
-          referenceDate: '2026-02-15', // Day should be ignored
-        };
+      it('should filter by referenceDate ignoring the day component', () => {
+        const allReports = repository.findAll();
+        const targetPrefix = '2026-02';
+        const hasMatches = allReports.some((r) =>
+          r.referenceDate.startsWith(targetPrefix),
+        );
 
-        const result = service.listReports(query);
+        if (hasMatches) {
+          const query: ReportsQueryDto = {
+            page: 0,
+            pageSize: 100,
+            referenceDate: '2026-02-15', // Day should be ignored
+          };
 
-        result.response.records.forEach((record) => {
-          expect(record.referenceDate).toBe('02/2026');
-        });
+          const result = service.listReports(query);
+
+          result.response.forEach((record) => {
+            expect(record.referenceDate.startsWith('2026-02')).toBe(true);
+          });
+        }
       });
     });
 
     describe('economic group filtering', () => {
       it('should filter by economicGroup (contains, case-insensitive)', () => {
         const query: ReportsQueryDto = {
-          page: 1,
+          page: 0,
           pageSize: 100,
-          economicGroup: 'grupo a',
+          economicGroup: 'matrix',
         };
 
         const result = service.listReports(query);
 
-        expect(result.response.records.length).toBeGreaterThan(0);
-        result.response.records.forEach((record) => {
-          expect(record.economicGroup.toLowerCase()).toContain('grupo');
+        expect(result.response.length).toBeGreaterThan(0);
+        result.response.forEach((record) => {
+          expect(record.economicGroup.toLowerCase()).toContain('matrix');
         });
       });
     });
 
     describe('sorting', () => {
-      it('should sort by id ascending', () => {
+      it('should sort by correlationId ascending', () => {
         const query: ReportsQueryDto = {
-          page: 1,
+          page: 0,
           pageSize: 10,
-          sortBy: SortBy.ID,
+          sortBy: SortBy.CORRELATION_ID,
           sortOrder: SortOrder.ASC,
         };
 
         const result = service.listReports(query);
 
-        for (let i = 1; i < result.response.records.length; i++) {
-          expect(result.response.records[i].id).toBeGreaterThanOrEqual(
-            result.response.records[i - 1].id,
-          );
+        for (let i = 1; i < result.response.length; i++) {
+          expect(
+            result.response[i].correlationId.localeCompare(
+              result.response[i - 1].correlationId,
+            ),
+          ).toBeGreaterThanOrEqual(0);
         }
       });
 
-      it('should sort by id descending', () => {
+      it('should sort by correlationId descending', () => {
         const query: ReportsQueryDto = {
-          page: 1,
+          page: 0,
           pageSize: 10,
-          sortBy: SortBy.ID,
+          sortBy: SortBy.CORRELATION_ID,
           sortOrder: SortOrder.DESC,
         };
 
         const result = service.listReports(query);
 
-        for (let i = 1; i < result.response.records.length; i++) {
-          expect(result.response.records[i].id).toBeLessThanOrEqual(
-            result.response.records[i - 1].id,
-          );
+        for (let i = 1; i < result.response.length; i++) {
+          expect(
+            result.response[i].correlationId.localeCompare(
+              result.response[i - 1].correlationId,
+            ),
+          ).toBeLessThanOrEqual(0);
         }
       });
 
       it('should sort by nickname ascending', () => {
         const query: ReportsQueryDto = {
-          page: 1,
+          page: 0,
           pageSize: 10,
           sortBy: SortBy.NICKNAME,
           sortOrder: SortOrder.ASC,
@@ -265,10 +274,10 @@ describe('ReportsService', () => {
 
         const result = service.listReports(query);
 
-        for (let i = 1; i < result.response.records.length; i++) {
+        for (let i = 1; i < result.response.length; i++) {
           expect(
-            result.response.records[i].nickname.localeCompare(
-              result.response.records[i - 1].nickname,
+            result.response[i].nickname.localeCompare(
+              result.response[i - 1].nickname,
             ),
           ).toBeGreaterThanOrEqual(0);
         }
@@ -278,7 +287,7 @@ describe('ReportsService', () => {
     describe('response format', () => {
       it('should return correct response structure', () => {
         const query: ReportsQueryDto = {
-          page: 1,
+          page: 0,
           pageSize: 10,
         };
 
@@ -286,33 +295,50 @@ describe('ReportsService', () => {
 
         expect(result).toHaveProperty('response');
         expect(result).toHaveProperty('paging');
-        expect(result.response).toHaveProperty('records');
-        expect(Array.isArray(result.response.records)).toBe(true);
+        expect(Array.isArray(result.response)).toBe(true);
       });
 
-      it('should return ReportItem with correct fields', () => {
+      it('should return report items with correct fields matching new contract', () => {
         const query: ReportsQueryDto = {
-          page: 1,
+          page: 0,
           pageSize: 1,
         };
 
         const result = service.listReports(query);
-        const record = result.response.records[0];
+        const record = result.response[0];
 
-        expect(record).toHaveProperty('id');
-        expect(record).toHaveProperty('uc');
-        expect(record).toHaveProperty('meterPoint');
+        expect(record).toHaveProperty('correlationId');
+        expect(record).toHaveProperty('codeUc');
         expect(record).toHaveProperty('nickname');
         expect(record).toHaveProperty('referenceDate');
         expect(record).toHaveProperty('economicGroup');
-        expect(record).toHaveProperty('status');
-        expect(record).toHaveProperty('url');
+        expect(record).toHaveProperty('reportStatus');
+        expect(record).toHaveProperty('updatedAt');
+        expect(record).toHaveProperty('ingestedAt');
+        expect(record).toHaveProperty('builtAt');
+        expect(record).toHaveProperty('sentAt');
 
-        // Validate referenceDate format (MM/YYYY)
-        expect(record.referenceDate).toMatch(/^\d{2}\/\d{4}$/);
+        // Validate referenceDate format (YYYY-MM-DD)
+        expect(record.referenceDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
 
-        // Validate URL format
-        expect(record.url).toBe(`https://api.matrixenergia.com/reports/${record.id}`);
+        // Validate codeUc is a 10-digit string
+        expect(record.codeUc).toMatch(/^\d{10}$/);
+      });
+
+      it('should NOT have old fields (id, uc, meterPoint, status, url)', () => {
+        const query: ReportsQueryDto = {
+          page: 0,
+          pageSize: 1,
+        };
+
+        const result = service.listReports(query);
+        const record = result.response[0] as any;
+
+        expect(record.id).toBeUndefined();
+        expect(record.uc).toBeUndefined();
+        expect(record.meterPoint).toBeUndefined();
+        expect(record.status).toBeUndefined();
+        expect(record.url).toBeUndefined();
       });
     });
   });
@@ -328,21 +354,11 @@ describe('ReportsService', () => {
       expect(result).toHaveProperty('reportsSent');
     });
 
-    it('should calculate sentReportsPercentage correctly', () => {
-      const result = service.getResume();
-      const total = 200;
-      const expectedPercentage = parseFloat(((result.reportsSent / total) * 100).toFixed(1));
-
-      expect(result.sentReportsPercentage).toBe(expectedPercentage);
-      expect(result.sentReportsPercentage).toBeGreaterThanOrEqual(0);
-      expect(result.sentReportsPercentage).toBeLessThanOrEqual(100);
-    });
-
     it('should count reportsToGenerate correctly', () => {
       const result = service.getResume();
       const allReports = repository.findAll();
       const expectedCount = allReports.filter(
-        (r) => r.status === ReportStatus.READY_TO_GENERATE,
+        (r) => r.reportStatus === ReportStatus.READY_TO_GENERATE,
       ).length;
 
       expect(result.reportsToGenerate).toBe(expectedCount);
@@ -353,8 +369,8 @@ describe('ReportsService', () => {
       const allReports = repository.findAll();
       const expectedCount = allReports.filter(
         (r) =>
-          r.status === ReportStatus.INFORMATION_PENDING ||
-          r.status === ReportStatus.NEEDS_ANALYSIS,
+          r.reportStatus === ReportStatus.PENDING_INFORMATION ||
+          r.reportStatus === ReportStatus.NEED_ANALYSIS,
       ).length;
 
       expect(result.reportsPendingCorrection).toBe(expectedCount);
@@ -363,7 +379,9 @@ describe('ReportsService', () => {
     it('should count reportsReadyToSend correctly', () => {
       const result = service.getResume();
       const allReports = repository.findAll();
-      const expectedCount = allReports.filter((r) => r.status === ReportStatus.READY_TO_SEND).length;
+      const expectedCount = allReports.filter(
+        (r) => r.reportStatus === ReportStatus.READY_TO_SEND,
+      ).length;
 
       expect(result.reportsReadyToSend).toBe(expectedCount);
     });
@@ -371,16 +389,23 @@ describe('ReportsService', () => {
     it('should count reportsSent correctly', () => {
       const result = service.getResume();
       const allReports = repository.findAll();
-      const expectedCount = allReports.filter((r) => r.status === ReportStatus.SENT).length;
+      const expectedCount = allReports.filter(
+        (r) => r.reportStatus === ReportStatus.SENT,
+      ).length;
 
       expect(result.reportsSent).toBe(expectedCount);
     });
 
-    it('should have sentReportsPercentage with 1 decimal place', () => {
+    it('should calculate sentReportsPercentage correctly', () => {
       const result = service.getResume();
-      const decimalPlaces = result.sentReportsPercentage.toString().split('.')[1]?.length || 0;
+      const allReports = repository.findAll();
+      const total = allReports.length;
+      const sentCount = allReports.filter(
+        (r) => r.reportStatus === ReportStatus.SENT,
+      ).length;
+      const expected = parseFloat(((sentCount / total) * 100).toFixed(1));
 
-      expect(decimalPlaces).toBeLessThanOrEqual(1);
+      expect(result.sentReportsPercentage).toBe(expected);
     });
   });
 });

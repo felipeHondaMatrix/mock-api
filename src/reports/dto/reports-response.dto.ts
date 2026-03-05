@@ -1,58 +1,43 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { ReportStatus } from '@/common/enums/report-status.enum';
+import { PagingResponseDto } from '@/common/dto/paging-response.dto';
 
 export class ReportItemDto {
-  @ApiProperty({ example: 200 })
-  id: number;
+  @ApiProperty({ example: '1f0e3dad-9993-4f3e-a1b2-56789abcd234' })
+  correlationId: string;
 
-  @ApiProperty({ example: 'UC-SP-000200' })
-  uc: string;
+  @ApiProperty({ example: '1212121212' })
+  codeUc: string;
 
-  @ApiProperty({ example: 'MP-00000200' })
-  meterPoint: string;
-
-  @ApiProperty({ example: 'Unidade Shopping 1' })
+  @ApiProperty({ example: 'Usina Iguatu' })
   nickname: string;
 
-  @ApiProperty({ example: '10/2025', description: 'Format: MM/YYYY' })
+  @ApiProperty({ example: '2026-01-01', description: 'Format: YYYY-MM-DD' })
   referenceDate: string;
 
-  @ApiProperty({ example: 'Grupo Econômico A' })
+  @ApiProperty({ example: 'Matrix' })
   economicGroup: string;
 
   @ApiProperty({ example: ReportStatus.READY_TO_SEND, enum: ReportStatus })
-  status: ReportStatus;
+  reportStatus: ReportStatus;
 
-  @ApiProperty({ example: 'https://api.matrixenergia.com/reports/200' })
-  url: string;
-}
+  @ApiProperty({ example: '2026-02-24T08:10:40.773Z' })
+  updatedAt: string;
 
-export class ReportsResponseDto {
-  @ApiProperty({
-    type: () => ReportItemDto,
-    isArray: true,
-    description: 'List of report items',
-  })
-  records: ReportItemDto[];
+  @ApiProperty({ example: '2026-02-24T08:10:40.773Z' })
+  ingestedAt: string;
+
+  @ApiProperty({ example: '2026-02-24T08:10:40.773Z' })
+  builtAt: string;
+
+  @ApiProperty({ example: '2026-02-24T08:10:40.773Z' })
+  sentAt: string;
 }
 
 export class ReportsListResponseDto {
-  @ApiProperty({ type: () => ReportsResponseDto })
-  response: ReportsResponseDto;
+  @ApiProperty({ type: () => ReportItemDto, isArray: true })
+  response: ReportItemDto[];
 
-  @ApiProperty({
-    type: 'object',
-    properties: {
-      page: { type: 'number', example: 7 },
-      pageSize: { type: 'number', example: 10 },
-      totalPages: { type: 'number', example: 20 },
-      totalItems: { type: 'number', example: 200 },
-    },
-  })
-  paging: {
-    page: number;
-    pageSize: number;
-    totalPages: number;
-    totalItems: number;
-  };
+  @ApiProperty({ type: () => PagingResponseDto })
+  paging: PagingResponseDto;
 }

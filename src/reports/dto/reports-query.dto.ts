@@ -5,10 +5,10 @@ import { PaginationQueryDto } from '@/common/dto/pagination-query.dto';
 import { ReportStatus } from '@/common/enums/report-status.enum';
 
 export enum SortBy {
-  ID = 'id',
+  CORRELATION_ID = 'correlationId',
   REFERENCE_DATE = 'referenceDate',
   NICKNAME = 'nickname',
-  STATUS = 'status',
+  REPORT_STATUS = 'reportStatus',
 }
 
 export enum SortOrder {
@@ -18,8 +18,8 @@ export enum SortOrder {
 
 export class ReportsQueryDto extends PaginationQueryDto {
   @ApiProperty({
-    description: 'Search term for UC, meter point, or nickname (case-insensitive contains)',
-    example: 'SP',
+    description: 'Search term for codeUc or nickname (case-insensitive contains)',
+    example: 'Usina',
     required: false,
   })
   @IsOptional()
@@ -28,8 +28,8 @@ export class ReportsQueryDto extends PaginationQueryDto {
 
   @ApiProperty({
     description:
-      'Filter by status (can be multiple). Accepts array or comma-separated values. Example: ?status=SENT&status=READY_TO_SEND or ?status=SENT,READY_TO_SEND',
-    example: [ReportStatus.READY_TO_GENERATE, ReportStatus.SENT],
+      'Filter by reportStatus (can be multiple). Accepts array or comma-separated values.',
+    example: [ReportStatus.READY_TO_GENERATE, ReportStatus.QUEUED_FOR_SENDING],
     enum: ReportStatus,
     isArray: true,
     required: false,
@@ -68,14 +68,14 @@ export class ReportsQueryDto extends PaginationQueryDto {
 
   @ApiProperty({
     description: 'Sort by field',
-    example: SortBy.ID,
+    example: SortBy.CORRELATION_ID,
     enum: SortBy,
-    default: SortBy.ID,
+    default: SortBy.CORRELATION_ID,
     required: false,
   })
   @IsOptional()
   @IsEnum(SortBy)
-  sortBy?: SortBy = SortBy.ID;
+  sortBy?: SortBy = SortBy.CORRELATION_ID;
 
   @ApiProperty({
     description: 'Sort order',

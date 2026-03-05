@@ -4,17 +4,17 @@ import { IsInt, IsOptional, Min, Max } from 'class-validator';
 
 export class PaginationQueryDto {
   @ApiProperty({
-    description: 'Page number',
-    example: 1,
-    default: 1,
-    minimum: 1,
+    description: 'Page number (0-based)',
+    example: 0,
+    default: 0,
+    minimum: 0,
     required: false,
   })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
-  @Min(1)
-  page?: number = 1;
+  @Min(0)
+  page?: number = 0;
 
   @ApiProperty({
     description: 'Number of items per page',

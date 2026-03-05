@@ -24,55 +24,31 @@ export class ReportsController {
     type: SimpleReportsEnvelopeDto,
     schema: {
       example: {
-        response: {
-          records: [
-            {
-              id: 200,
-              uc: 'UC-SP-000200',
-              meterPoint: 'MP-00000200',
-              nickName: 'Unidade Shopping 1',
-              referenceDate: '10/2025',
-              economicGroup: 'Grupo Econômico A',
-              status: 'READY_TO_SEND',
-            },
-            {
-              id: 199,
-              uc: 'UC-GO-000199',
-              meterPoint: 'MP-99000199',
-              nickName: 'Depósito Matriz 100',
-              referenceDate: '10/2025',
-              economicGroup: 'Grupo Econômico E',
-              status: 'READY_TO_SEND',
-            },
-          ],
-        },
+        response: [
+          {
+            correlationId: '1f0e3dad-9993-4f3e-a1b2-56789abcd234',
+            codeUc: '1212121212',
+            nickname: 'Usina Iguatu',
+            referenceDate: '2026-01-01',
+            economicGroup: 'Matrix',
+            reportStatus: 'QUEUED_FOR_SENDING',
+            updatedAt: '2026-02-24T08:10:40.773Z',
+            ingestedAt: '2026-02-24T08:10:40.773Z',
+            builtAt: '2026-02-24T08:10:40.773Z',
+            sentAt: '2026-02-24T08:10:40.773Z',
+          },
+        ],
         paging: {
-          page: 1,
-          pageSize: 10,
           totalPages: 20,
-          totalItems: 200,
+          totalElements: 200,
+          page: 1,
+          elementsPerPage: 10,
         },
       },
     },
   })
   listReports(@Query() query: ReportsQueryDto): SimpleReportsEnvelopeDto {
-    const result = this.reportsService.listReports(query);
-    
-    // Transform to SimpleReportsEnvelopeDto format
-    return {
-      response: {
-        records: result.response.records.map(record => ({
-          id: record.id,
-          uc: record.uc,
-          meterPoint: record.meterPoint,
-          nickName: record.nickname,
-          referenceDate: record.referenceDate,
-          economicGroup: record.economicGroup,
-          status: record.status,
-        })),
-      },
-      paging: result.paging,
-    };
+    return this.reportsService.listReports(query);
   }
 
   // @Get('resume-reports')

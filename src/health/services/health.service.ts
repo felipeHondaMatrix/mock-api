@@ -20,12 +20,13 @@ export class HealthService {
     const currentYear = now.getFullYear();
     const currentReferenceDate = `${String(currentMonth).padStart(2, '0')}/${currentYear}`;
 
+    const currentYearMonthPrefix = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
+
     // Check if there are reports being generated in current month
     const generatingInCurrentMonth = reports.filter(
       (r) =>
-        r.status === ReportStatus.GENERATING_REPORT &&
-        r.referenceMonth === currentMonth &&
-        r.referenceYear === currentYear,
+        r.reportStatus === ReportStatus.GENERATING_REPORT &&
+        r.referenceDate.startsWith(currentYearMonthPrefix),
     );
 
     const isBillingRunning = generatingInCurrentMonth.length > 0;
@@ -59,12 +60,12 @@ export class HealthService {
 
     // Count reports being generated
     const generatingCount = reports.filter(
-      (r) => r.status === ReportStatus.GENERATING_REPORT,
+      (r) => r.reportStatus === ReportStatus.GENERATING_REPORT,
     ).length;
 
     // Count reports queued to generate
     const queuedToGenerate = reports.filter(
-      (r) => r.status === ReportStatus.READY_TO_GENERATE,
+      (r) => r.reportStatus === ReportStatus.READY_TO_GENERATE,
     ).length;
 
     const isGeneratingReports = generatingCount > 0;

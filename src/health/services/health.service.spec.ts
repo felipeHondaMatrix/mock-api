@@ -75,7 +75,7 @@ describe('HealthService', () => {
     it('should return correct generatingCount', () => {
       const result = service.checkGenerationReports();
       const allReports = repository.findAll();
-      const expectedCount = allReports.filter((r) => r.status === 'GENERATING_REPORT').length;
+      const expectedCount = allReports.filter((r) => r.reportStatus === 'GENERATING_REPORT').length;
 
       expect(result.generatingCount).toBe(expectedCount);
     });
@@ -83,7 +83,7 @@ describe('HealthService', () => {
     it('should return correct queuedToGenerate', () => {
       const result = service.checkGenerationReports();
       const allReports = repository.findAll();
-      const expectedCount = allReports.filter((r) => r.status === 'READY_TO_GENERATE').length;
+      const expectedCount = allReports.filter((r) => r.reportStatus === 'READY_TO_GENERATE').length;
 
       expect(result.queuedToGenerate).toBe(expectedCount);
     });
