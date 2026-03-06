@@ -37,8 +37,24 @@ npm run start:prod
 ```
 
 A aplicação estará rodando em:
-- **API**: http://localhost:3000
-- **Swagger**: http://localhost:3000/api/docs
+- **API**: http://localhost:8080
+- **Swagger**: http://localhost:8080/api/docs
+
+### 🌐 CORS para front local
+
+Por padrão, a API permite as seguintes origens locais:
+- `http://localhost:3000`
+- `http://127.0.0.1:3000`
+- `http://localhost:4200`
+- `http://127.0.0.1:4200`
+- `http://localhost:5173`
+- `http://127.0.0.1:5173`
+
+Para customizar, configure a variável de ambiente `CORS_ORIGINS` (separada por vírgula):
+
+```bash
+CORS_ORIGINS=http://localhost:3000,http://localhost:5173 npm run start:dev
+```
 
 ## 📚 Endpoints
 
