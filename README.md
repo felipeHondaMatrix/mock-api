@@ -44,7 +44,7 @@ A aplicação estará rodando em:
 
 ### Health Endpoints
 
-#### 1. GET /health/check-billing
+#### 1. GET /billing/check-billing
 Verifica o status do processo de faturamento.
 
 **Response:**
@@ -59,7 +59,7 @@ Verifica o status do processo de faturamento.
 
 **Exemplo de request:**
 ```bash
-curl http://localhost:3000/health/check-billing
+curl http://localhost:3000/billing/check-billing
 ```
 
 ---

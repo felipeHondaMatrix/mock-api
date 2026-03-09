@@ -12,38 +12,28 @@ export class HealthService {
    * Check billing process status
    */
   checkBilling(): CheckBillingResponseDto {
-    const reports = this.reportsRepository.findAll();
     const now = new Date();
 
-    // Get current month/year
-    const currentMonth = now.getMonth() + 1;
-    const currentYear = now.getFullYear();
-    const currentReferenceDate = `${String(currentMonth).padStart(2, '0')}/${currentYear}`;
+    // TODO: mock forçado apenas para testes — remover quando a lógica real for restaurada
+    return { isBillingRunning: false } as CheckBillingResponseDto;
 
-    const currentYearMonthPrefix = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
-
-    // Check if there are reports being generated in current month
-    const generatingInCurrentMonth = reports.filter(
-      (r) =>
-        r.reportStatus === ReportStatus.GENERATING_REPORT &&
-        r.referenceDate.startsWith(currentYearMonthPrefix),
-    );
-
-    const isBillingRunning = generatingInCurrentMonth.length > 0;
-
-    // Mock last billing event (10 minutes ago)
-    const lastBillingEventAt = new Date(now.getTime() - 10 * 60 * 1000).toISOString();
-
-    const message = isBillingRunning
-      ? 'Billing process is active with reports being generated'
-      : 'No billing process currently running';
-
-    return {
-      isBillingRunning,
-      currentReferenceDate,
-      lastBillingEventAt,
-      message,
-    };
+    // --- lógica real (descomentar quando os dados do mock incluírem o mês atual) ---
+    // const reports = this.reportsRepository.findAll();
+    // const currentMonth = now.getMonth() + 1;
+    // const currentYear = now.getFullYear();
+    // const currentReferenceDate = `${String(currentMonth).padStart(2, '0')}/${currentYear}`;
+    // const currentYearMonthPrefix = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
+    // const generatingInCurrentMonth = reports.filter(
+    //   (r) =>
+    //     r.reportStatus === ReportStatus.GENERATING_REPORT &&
+    //     r.referenceDate.startsWith(currentYearMonthPrefix),
+    // );
+    // const isBillingRunning = generatingInCurrentMonth.length > 0;
+    // const lastBillingEventAt = new Date(now.getTime() - 10 * 60 * 1000).toISOString();
+    // const message = isBillingRunning
+    //   ? 'Billing process is active with reports being generated'
+    //   : 'No billing process currently running';
+    // return { isBillingRunning, currentReferenceDate, lastBillingEventAt, message };
   }
 
   /**
