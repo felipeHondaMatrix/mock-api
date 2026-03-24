@@ -2,6 +2,12 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class ResumeReportsResponseDto {
   @ApiProperty({
+    example: 200,
+    description: 'Total number of reports',
+  })
+  totalReports: number;
+
+  @ApiProperty({
     example: 4.6,
     description: 'Percentage of sent reports (1 decimal place)',
   })

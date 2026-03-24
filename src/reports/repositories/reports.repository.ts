@@ -14,6 +14,7 @@ import { ReportStatus } from '@/common/enums/report-status.enum';
 @Injectable()
 export class ReportsRepository {
   private reports: Report[] = [];
+  private readonly priorityReadyToGenerateCount = 12;
 
   constructor() {
     this.reports = this.generateMockReports(200);
@@ -48,12 +49,13 @@ export class ReportsRepository {
     const statusWeights = {
       [ReportStatus.READY_TO_GENERATE]: 0.15,
       [ReportStatus.GENERATING_REPORT]: 0.05,
-      [ReportStatus.INFORMATION_PENDING]: 0.05,
-      [ReportStatus.NEEDS_ANALYSIS]: 0.05,
-      [ReportStatus.ERROR_PROCESSING]: 0.02,
-      [ReportStatus.READY_TO_SEND]: 0.63,
+      [ReportStatus.PENDING_INFORMATION]: 0.05,
+      [ReportStatus.NEED_ANALYSIS]: 0.05,
+      [ReportStatus.PROCESSING_ERROR]: 0.02,
+      [ReportStatus.READY_TO_SEND]: 0.5,
+      [ReportStatus.QUEUED_FOR_SENDING]: 0.13,
       [ReportStatus.SENT]: 0.04,
-      [ReportStatus.ERROR_SEND]: 0.01,
+      [ReportStatus.SENDING_ERROR]: 0.01,
     };
 
     for (let i = 1; i <= count; i++) {
@@ -64,8 +66,11 @@ export class ReportsRepository {
       const referenceMonth = date.getMonth() + 1;
       const referenceYear = date.getFullYear();
 
-      // Weighted random status selection
-      const status = this.getWeightedRandomStatus(statusWeights);
+      // Keep several READY_TO_GENERATE records at the top of the default listing.
+      const status =
+        i > count - this.priorityReadyToGenerateCount
+          ? ReportStatus.READY_TO_GENERATE
+          : this.getWeightedRandomStatus(statusWeights);
 
       reports.push({
         id: i,

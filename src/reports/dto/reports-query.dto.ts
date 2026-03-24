@@ -5,10 +5,12 @@ import { PaginationQueryDto } from '@/common/dto/pagination-query.dto';
 import { ReportStatus } from '@/common/enums/report-status.enum';
 
 export enum SortBy {
-  ID = 'id',
   REFERENCE_DATE = 'referenceDate',
+  CODE_UC = 'codeUc',
   NICKNAME = 'nickname',
-  STATUS = 'status',
+  ECONOMIC_GROUP = 'economicGroup',
+  REPORT_STATUS = 'reportStatus',
+  UPDATED_AT = 'updatedAt',
 }
 
 export enum SortOrder {
@@ -46,36 +48,91 @@ export class ReportsQueryDto extends PaginationQueryDto {
   status?: ReportStatus[];
 
   @ApiProperty({
-    description: 'Filter by reference date in YYYY-MM-DD format. Only year and month components are used for filtering (day is ignored).',
-    example: '2025-10-01',
+    description: 'Alias accepted for frontend array serialization',
+    example: [ReportStatus.READY_TO_GENERATE],
+    enum: ReportStatus,
+    isArray: true,
     required: false,
   })
   @IsOptional()
-  @IsString()
-  @Matches(/^\d{4}-\d{2}-\d{2}$/, { 
-    message: 'referenceDate must be in YYYY-MM-DD format' 
+  @Transform(({ value }) => {
+    if (Array.isArray(value)) {
+      return value;
+    }
+    return value ? [value] : undefined;
   })
-  referenceDate?: string;
+  @IsArray()
+  @IsEnum(ReportStatus, { each: true })
+  ['status[]']?: ReportStatus[];
 
   @ApiProperty({
-    description: 'Filter by economic group (contains, case-insensitive)',
-    example: 'Grupo Econômico',
+    description: 'Start date for filtering reports',
+    example: '2026-01-01',
     required: false,
   })
   @IsOptional()
   @IsString()
-  economicGroup?: string;
+  @Matches(/^\d{4}-\d{2}-\d{2}$/, {
+    message: 'startDate must be in YYYY-MM-DD format',
+  })
+  startDate?: string;
+
+  @ApiProperty({
+    description: 'End date for filtering reports',
+    example: '2026-02-01',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  @Matches(/^\d{4}-\d{2}-\d{2}$/, {
+    message: 'endDate must be in YYYY-MM-DD format',
+  })
+  endDate?: string;
+
+  @ApiProperty({
+    description: 'Filter by economic group',
+    example: ['Grupo Econômico A'],
+    isArray: true,
+    required: false,
+  })
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (Array.isArray(value)) {
+      return value;
+    }
+    return value ? [value] : undefined;
+  })
+  @IsArray()
+  @IsString({ each: true })
+  economicGroup?: string[];
+
+  @ApiProperty({
+    description: 'Alias accepted for frontend array serialization',
+    example: ['Grupo Econômico A'],
+    isArray: true,
+    required: false,
+  })
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (Array.isArray(value)) {
+      return value;
+    }
+    return value ? [value] : undefined;
+  })
+  @IsArray()
+  @IsString({ each: true })
+  ['economicGroup[]']?: string[];
 
   @ApiProperty({
     description: 'Sort by field',
-    example: SortBy.ID,
+    example: SortBy.REFERENCE_DATE,
     enum: SortBy,
-    default: SortBy.ID,
+    default: SortBy.REFERENCE_DATE,
     required: false,
   })
   @IsOptional()
   @IsEnum(SortBy)
-  sortBy?: SortBy = SortBy.ID;
+  orderBy?: SortBy = SortBy.REFERENCE_DATE;
 
   @ApiProperty({
     description: 'Sort order',
@@ -86,5 +143,5 @@ export class ReportsQueryDto extends PaginationQueryDto {
   })
   @IsOptional()
   @IsEnum(SortOrder)
-  sortOrder?: SortOrder = SortOrder.DESC;
+  order?: SortOrder = SortOrder.DESC;
 }

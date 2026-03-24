@@ -12,14 +12,3 @@ export interface Report {
   createdAt: Date;
   updatedAt: Date;
 }
-
-export interface ReportItem {
-  id: number;
-  uc: string;
-  meterPoint: string;
-  nickname: string;
-  referenceDate: string; // "MM/YYYY"
-  economicGroup: string;
-  status: ReportStatus;
-  url: string;
-}

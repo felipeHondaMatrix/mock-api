@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { ReportsRepository } from '@/reports/repositories/reports.repository';
-import { ReportStatus } from '@/common/enums/report-status.enum';
-import { CheckBillingResponseDto } from '@/health/dto/check-billing-response.dto';
-import { CheckGenerationReportsResponseDto } from '@/health/dto/check-generation-reports-response.dto';
+import { ReportsRepository } from '../../reports/repositories/reports.repository';
+import { ReportStatus } from '../../common/enums/report-status.enum';
+import { CheckBillingResponseDto } from '../dto/check-billing-response.dto';
+import { CheckGenerationReportsResponseDto } from '../dto/check-generation-reports-response.dto';
 
 @Injectable()
 export class HealthService {

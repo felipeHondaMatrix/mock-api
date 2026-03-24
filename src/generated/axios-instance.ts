@@ -1,4 +1,4 @@
-import Axios, { AxiosRequestConfig } from 'axios';
+import Axios, { AxiosHeaders, AxiosRequestConfig } from 'axios';
 
 const BASE_URL = process.env.EPR_FLOW_CONTROL_API_URL ?? 'https://dev-api.internal.matrixenergia.com/epr-flow-control-api';
 
@@ -7,7 +7,7 @@ export const axiosInstance = Axios.create({ baseURL: BASE_URL });
 axiosInstance.interceptors.request.use((config) => {
   const token = process.env.EPR_FLOW_CONTROL_API_TOKEN;
   if (token) {
-    config.headers = config.headers ?? {};
+    config.headers = AxiosHeaders.from(config.headers);
     config.headers['Authorization'] = `Bearer ${token}`;
   }
   return config;
