@@ -15,6 +15,7 @@ import { ReportStatus } from '@/common/enums/report-status.enum';
 export class ReportsRepository {
   private reports: Report[] = [];
   private readonly priorityReadyToGenerateCount = 12;
+  private readonly targetMarchSentCount = 16;
 
   constructor() {
     this.reports = this.generateMockReports(200);
@@ -37,6 +38,7 @@ export class ReportsRepository {
    */
   private generateMockReports(count: number): Report[] {
     const reports: Report[] = [];
+    const currentYear = new Date().getFullYear();
     const economicGroups = [
       'Grupo Econômico A',
       'Grupo Econômico B',
@@ -72,7 +74,7 @@ export class ReportsRepository {
           ? ReportStatus.READY_TO_GENERATE
           : this.getWeightedRandomStatus(statusWeights);
 
-      reports.push({
+      const report = {
         id: i,
         uc: this.generateUC(i),
         meterPoint: this.generateMeterPoint(i),
@@ -83,10 +85,37 @@ export class ReportsRepository {
         status,
         createdAt: new Date(date.getFullYear(), date.getMonth(), 1),
         updatedAt: new Date(),
-      });
+      };
+
+      reports.push(report);
     }
 
+    this.ensureMarchSentReports(reports, currentYear);
+
     return reports;
+  }
+
+  private ensureMarchSentReports(reports: Report[], currentYear: number): void {
+    const marchReports = reports.filter(
+      (report) => report.referenceMonth === 3 && report.referenceYear === currentYear,
+    );
+
+    let sentCount = marchReports.filter(
+      (report) => report.status === ReportStatus.SENT,
+    ).length;
+
+    for (const report of marchReports) {
+      if (sentCount >= this.targetMarchSentCount) {
+        break;
+      }
+
+      if (report.status === ReportStatus.SENT) {
+        continue;
+      }
+
+      report.status = ReportStatus.SENT;
+      sentCount++;
+    }
   }
 
   private getWeightedRandomStatus(weights: Record<ReportStatus, number>): ReportStatus {
