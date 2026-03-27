@@ -13,7 +13,12 @@ export class BillingService {
     const currentMonth = now.getMonth() + 1;
     const currentYear = now.getFullYear();
 
-    const isBillingRunning = false
+    const isBillingRunning = reports.some(
+      (report) =>
+        report.status === ReportStatus.GENERATING_REPORT &&
+        report.referenceMonth === currentMonth &&
+        report.referenceYear === currentYear,
+    );
 
     return { isBillingRunning };
   }
