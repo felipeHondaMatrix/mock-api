@@ -14,6 +14,7 @@ import { ReportStatus } from '@/common/enums/report-status.enum';
 @Injectable()
 export class ReportsRepository {
   private reports: Report[] = [];
+  private readonly correlationIdPrefix = 'mock-correlation';
   private readonly priorityReadyToGenerateCount = 12;
   private readonly targetMarchSentCount = 16;
 
@@ -29,8 +30,33 @@ export class ReportsRepository {
     return this.reports.find((report) => report.id === id);
   }
 
+  findByCorrelationId(correlationId: string): Report | undefined {
+    const reportId = this.extractIdFromCorrelationId(correlationId);
+
+    if (reportId === null) {
+      return undefined;
+    }
+
+    return this.findById(reportId);
+  }
+
+  getCorrelationId(report: Pick<Report, 'id'>): string {
+    return `${this.correlationIdPrefix}-${String(report.id).padStart(6, '0')}`;
+  }
+
   count(): number {
     return this.reports.length;
+  }
+
+  private extractIdFromCorrelationId(correlationId: string): number | null {
+    const escapedPrefix = this.correlationIdPrefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const match = correlationId.match(new RegExp(`^${escapedPrefix}-(\\d{6})$`));
+
+    if (!match) {
+      return null;
+    }
+
+    return Number.parseInt(match[1], 10);
   }
 
   /**

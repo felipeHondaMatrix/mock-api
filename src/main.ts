@@ -55,6 +55,7 @@ async function bootstrap() {
     .setDescription('API for managing energy reports with pagination and filters')
     .setVersion('1.0')
     .addTag('Billing', 'Billing endpoints')
+    .addTag('files', 'Files endpoints')
     .addTag('health', 'Health check endpoints')
     .addTag('reports', 'Reports management endpoints')
     .build();

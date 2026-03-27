@@ -433,7 +433,7 @@ export class ReportsService {
   }
 
   private toCorrelationId(report: Report): string {
-    return `mock-correlation-${String(report.id).padStart(6, '0')}`;
+    return this.reportsRepository.getCorrelationId(report);
   }
 
   private toMessage(status: ReportStatus): string {
