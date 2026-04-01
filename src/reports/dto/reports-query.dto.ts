@@ -4,6 +4,19 @@ import { IsOptional, IsString, IsEnum, IsArray, Matches } from 'class-validator'
 import { PaginationQueryDto } from '@/common/dto/pagination-query.dto';
 import { ReportStatus } from '@/common/enums/report-status.enum';
 
+const normalizeArrayQueryParam = (value: unknown): unknown[] | undefined => {
+  if (value === undefined || value === null || value === '') {
+    return undefined;
+  }
+
+  const values = Array.isArray(value) ? value : [value];
+
+  return values
+    .flatMap((item) => (typeof item === 'string' ? item.split(',') : [item]))
+    .map((item) => (typeof item === 'string' ? item.trim() : item))
+    .filter(Boolean);
+};
+
 export enum SortBy {
   REFERENCE_DATE = 'referenceDate',
   CODE_UC = 'codeUc',
@@ -37,23 +50,16 @@ export class ReportsQueryDto extends PaginationQueryDto {
     required: false,
   })
   @IsOptional()
-  @Transform(({ value }) => {
-    if (value === undefined || value === null || value === '') {
-      return undefined;
-    }
-
-    const values = Array.isArray(value) ? value : [value];
-
-    return values
-      .flatMap((item) =>
-        typeof item === 'string' ? item.split(',') : [item],
-      )
-      .map((item) => (typeof item === 'string' ? item.trim() : item))
-      .filter(Boolean);
-  })
+  @Transform(({ value }) => normalizeArrayQueryParam(value))
   @IsArray()
   @IsEnum(ReportStatus, { each: true })
   status?: ReportStatus[];
+
+  @IsOptional()
+  @Transform(({ value }) => normalizeArrayQueryParam(value))
+  @IsArray()
+  @IsEnum(ReportStatus, { each: true })
+  ['status[]']?: ReportStatus[];
 
   @ApiProperty({
     description: 'Start date for filtering reports',
@@ -86,23 +92,16 @@ export class ReportsQueryDto extends PaginationQueryDto {
     required: false,
   })
   @IsOptional()
-  @Transform(({ value }) => {
-    if (value === undefined || value === null || value === '') {
-      return undefined;
-    }
-
-    const values = Array.isArray(value) ? value : [value];
-
-    return values
-      .flatMap((item) =>
-        typeof item === 'string' ? item.split(',') : [item],
-      )
-      .map((item) => (typeof item === 'string' ? item.trim() : item))
-      .filter(Boolean);
-  })
+  @Transform(({ value }) => normalizeArrayQueryParam(value))
   @IsArray()
   @IsString({ each: true })
   economicGroup?: string[];
+
+  @IsOptional()
+  @Transform(({ value }) => normalizeArrayQueryParam(value))
+  @IsArray()
+  @IsString({ each: true })
+  ['economicGroup[]']?: string[];
 
   @ApiProperty({
     description: 'Sort by field',

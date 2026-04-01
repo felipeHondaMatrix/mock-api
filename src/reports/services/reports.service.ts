@@ -253,6 +253,9 @@ export class ReportsService {
    */
   private applyFilters(reports: Report[], query: ReportsQueryDto): Report[] {
     let filtered = [...reports];
+    const statuses = query.status ?? query['status[]'];
+    const economicGroupsQuery =
+      query.economicGroup ?? query['economicGroup[]'];
 
     // Filter by search (UC, meterPoint, or nickname)
     if (query.search) {
@@ -266,8 +269,8 @@ export class ReportsService {
     }
 
     // Filter by status (support both array format and CSV format)
-    if (query.status && query.status.length > 0) {
-      filtered = filtered.filter((report) => query.status!.includes(report.status));
+    if (statuses && statuses.length > 0) {
+      filtered = filtered.filter((report) => statuses.includes(report.status));
     }
 
     // Filter by reference date (YYYY-MM-DD format)
@@ -288,8 +291,10 @@ export class ReportsService {
     }
 
     // Filter by economic group
-    if (query.economicGroup && query.economicGroup.length > 0) {
-      const economicGroups = query.economicGroup.map((group) => group.toLowerCase());
+    if (economicGroupsQuery && economicGroupsQuery.length > 0) {
+      const economicGroups = economicGroupsQuery.map((group) =>
+        group.toLowerCase(),
+      );
       filtered = filtered.filter((report) =>
         economicGroups.some((group) =>
           report.economicGroup.toLowerCase().includes(group),

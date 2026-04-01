@@ -74,6 +74,27 @@ describe('ReportsService', () => {
       });
     });
 
+    it('filters by status[] when the frontend sends bracket notation', () => {
+      const result = service.listReports({
+        page: 0,
+        pageSize: 100,
+        ['status[]']: [
+          ReportStatus.SENT,
+          ReportStatus.READY_TO_GENERATE,
+          ReportStatus.GENERATING_REPORT,
+        ],
+      });
+
+      expect(result.response.length).toBeGreaterThan(0);
+      result.response.forEach((record) => {
+        expect([
+          ReportStatus.SENT,
+          ReportStatus.READY_TO_GENERATE,
+          ReportStatus.GENERATING_REPORT,
+        ]).toContain(record.reportStatus);
+      });
+    });
+
     it('filters by search using codeUc and nickname', () => {
       const firstReport = repository.findAll()[0];
       const result = service.listReports({
