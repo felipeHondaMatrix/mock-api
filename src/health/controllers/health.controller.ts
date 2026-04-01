@@ -19,14 +19,6 @@ export class HealthController {
     status: 200,
     description: 'Successfully retrieved billing status',
     type: CheckBillingResponseDto,
-    schema: {
-      example: {
-        isBillingRunning: true,
-        currentReferenceDate: '02/2026',
-        lastBillingEventAt: '2026-02-04T10:30:00.000Z',
-        message: 'Billing process is active with reports being generated',
-      },
-    },
   })
   checkBilling(): CheckBillingResponseDto {
     return this.healthService.checkBilling();
@@ -42,14 +34,6 @@ export class HealthController {
     status: 200,
     description: 'Successfully retrieved generation status',
     type: CheckGenerationReportsResponseDto,
-    schema: {
-      example: {
-        isGeneratingReports: true,
-        generatingCount: 5,
-        queuedToGenerate: 31,
-        currentReferenceDate: '02/2026',
-      },
-    },
   })
   checkGenerationReports(): CheckGenerationReportsResponseDto {
     return this.healthService.checkGenerationReports();

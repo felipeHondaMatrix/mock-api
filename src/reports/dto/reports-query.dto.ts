@@ -38,32 +38,22 @@ export class ReportsQueryDto extends PaginationQueryDto {
   })
   @IsOptional()
   @Transform(({ value }) => {
-    if (Array.isArray(value)) {
-      return value;
+    if (value === undefined || value === null || value === '') {
+      return undefined;
     }
-    return value ? [value] : undefined;
+
+    const values = Array.isArray(value) ? value : [value];
+
+    return values
+      .flatMap((item) =>
+        typeof item === 'string' ? item.split(',') : [item],
+      )
+      .map((item) => (typeof item === 'string' ? item.trim() : item))
+      .filter(Boolean);
   })
   @IsArray()
   @IsEnum(ReportStatus, { each: true })
   status?: ReportStatus[];
-
-  @ApiProperty({
-    description: 'Alias accepted for frontend array serialization',
-    example: [ReportStatus.READY_TO_GENERATE],
-    enum: ReportStatus,
-    isArray: true,
-    required: false,
-  })
-  @IsOptional()
-  @Transform(({ value }) => {
-    if (Array.isArray(value)) {
-      return value;
-    }
-    return value ? [value] : undefined;
-  })
-  @IsArray()
-  @IsEnum(ReportStatus, { each: true })
-  ['status[]']?: ReportStatus[];
 
   @ApiProperty({
     description: 'Start date for filtering reports',
@@ -97,31 +87,22 @@ export class ReportsQueryDto extends PaginationQueryDto {
   })
   @IsOptional()
   @Transform(({ value }) => {
-    if (Array.isArray(value)) {
-      return value;
+    if (value === undefined || value === null || value === '') {
+      return undefined;
     }
-    return value ? [value] : undefined;
+
+    const values = Array.isArray(value) ? value : [value];
+
+    return values
+      .flatMap((item) =>
+        typeof item === 'string' ? item.split(',') : [item],
+      )
+      .map((item) => (typeof item === 'string' ? item.trim() : item))
+      .filter(Boolean);
   })
   @IsArray()
   @IsString({ each: true })
   economicGroup?: string[];
-
-  @ApiProperty({
-    description: 'Alias accepted for frontend array serialization',
-    example: ['Grupo Econômico A'],
-    isArray: true,
-    required: false,
-  })
-  @IsOptional()
-  @Transform(({ value }) => {
-    if (Array.isArray(value)) {
-      return value;
-    }
-    return value ? [value] : undefined;
-  })
-  @IsArray()
-  @IsString({ each: true })
-  ['economicGroup[]']?: string[];
 
   @ApiProperty({
     description: 'Sort by field',

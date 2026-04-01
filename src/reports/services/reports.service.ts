@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { ReportsRepository } from '../repositories/reports.repository';
 import { ReportsQueryDto, SortBy, SortOrder } from '../dto/reports-query.dto';
 import { Report } from '@/common/interfaces/report.interface';
@@ -11,6 +11,7 @@ import type {
   ReportSummaryResponseDto,
   SearchResultResponseReportResponseDto,
 } from '@/generated/epr-flow-control-api/model';
+import { ReportVersionsResponseDto } from '../dto/report-versions-response.dto';
 
 @Injectable()
 export class ReportsService {
@@ -78,6 +79,23 @@ export class ReportsService {
       message: correlationId
         ? 'Report sent to queue'
         : 'Reports sent to queue',
+    };
+  }
+
+  getVersions(correlationId: string): ReportVersionsResponseDto {
+    const report = this.reportsRepository.findByCorrelationId(correlationId);
+
+    if (!report) {
+      throw new NotFoundException(`Report ${correlationId} not found`);
+    }
+
+    const month = String(report.referenceMonth).padStart(2, '0');
+    const major = report.referenceYear;
+    const patch = report.id;
+
+    return {
+      correlationId,
+      versions: [`${major}.${month}.${patch}`],
     };
   }
 
@@ -249,12 +267,7 @@ export class ReportsService {
 
     // Filter by status (support both array format and CSV format)
     if (query.status && query.status.length > 0) {
-      // Handle both array ['STATUS1', 'STATUS2'] and comma-separated 'STATUS1,STATUS2'
-      const statusArray = Array.isArray(query.status)
-        ? query.status.flatMap((s) => (typeof s === 'string' && s.includes(',') ? s.split(',') : s))
-        : [query.status];
-
-      filtered = filtered.filter((report) => statusArray.includes(report.status));
+      filtered = filtered.filter((report) => query.status!.includes(report.status));
     }
 
     // Filter by reference date (YYYY-MM-DD format)

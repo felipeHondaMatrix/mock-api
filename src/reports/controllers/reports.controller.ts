@@ -9,31 +9,12 @@ import type {
 } from '@/generated/epr-flow-control-api/model';
 import { ReportsService } from '../services/reports.service';
 import { ReportsQueryDto } from '../dto/reports-query.dto';
+import { ReportVersionsResponseDto } from '../dto/report-versions-response.dto';
 
 @ApiTags('reports')
 @Controller('reports')
 export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
-
-  private normalizeQuery(params: ReportsQueryDto): ReportsQueryDto {
-    const normalized = { ...params };
-
-    if (!normalized.status?.length && normalized['status[]']?.length) {
-      normalized.status = normalized['status[]'];
-    }
-
-    if (
-      !normalized.economicGroup?.length &&
-      normalized['economicGroup[]']?.length
-    ) {
-      normalized.economicGroup = normalized['economicGroup[]'];
-    }
-
-    delete normalized['status[]'];
-    delete normalized['economicGroup[]'];
-
-    return normalized;
-  }
 
   @Get()
   @ApiOperation({
@@ -42,7 +23,7 @@ export class ReportsController {
   })
   @ApiResponse({ status: 200, description: 'Successfully retrieved reports list' })
   list(@Query() params: ReportsQueryDto): SearchResultResponseReportResponseDto {
-    return this.reportsService.listReports(this.normalizeQuery(params));
+    return this.reportsService.listReports(params);
   }
 
   @Get('summary')
@@ -53,6 +34,17 @@ export class ReportsController {
   @ApiResponse({ status: 200, description: 'Successfully retrieved report summary' })
   async summary(@Query() params: SummaryParams): Promise<ReportSummaryResponseDto> {
     return this.reportsService.getSummary(params.referenceDate);
+  }
+
+  @Get(':correlationId/versions')
+  @ApiOperation({
+    summary: 'List report versions by correlationId',
+    description: 'Returns the mocked list of versions for a specific report correlationId.',
+  })
+  @ApiResponse({ status: 200, description: 'Successfully retrieved report versions', type: ReportVersionsResponseDto })
+  @ApiResponse({ status: 404, description: 'Report not found' })
+  versions(@Param('correlationId') correlationId: string): ReportVersionsResponseDto {
+    return this.reportsService.getVersions(correlationId);
   }
 
   @Post('generate')

@@ -8,6 +8,12 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.use((req: Request, _res: Response, next: NextFunction) => {
+    const prefixedApiBasePath = '/epr-ui/api';
+
+    if (req.url === prefixedApiBasePath || req.url.startsWith(`${prefixedApiBasePath}/`)) {
+      req.url = req.url.slice(prefixedApiBasePath.length) || '/';
+    }
+
     const aliases: Array<[string, string]> = [
       ['status[]', 'status'],
       ['economicGroup[]', 'economicGroup'],

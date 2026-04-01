@@ -53,6 +53,27 @@ describe('ReportsService', () => {
       });
     });
 
+    it('filters by status when values come in a bracket-array style payload', () => {
+      const result = service.listReports({
+        page: 0,
+        pageSize: 100,
+        status: [
+          ReportStatus.SENT,
+          ReportStatus.READY_TO_GENERATE,
+          ReportStatus.GENERATING_REPORT,
+        ],
+      });
+
+      expect(result.response.length).toBeGreaterThan(0);
+      result.response.forEach((record) => {
+        expect([
+          ReportStatus.SENT,
+          ReportStatus.READY_TO_GENERATE,
+          ReportStatus.GENERATING_REPORT,
+        ]).toContain(record.reportStatus);
+      });
+    });
+
     it('filters by search using codeUc and nickname', () => {
       const firstReport = repository.findAll()[0];
       const result = service.listReports({
@@ -162,6 +183,16 @@ describe('ReportsService', () => {
 
       expect(result.correlationId).toBe('corr-123');
       expect(result.message).toBe('Report sent to queue');
+    });
+  });
+
+  describe('getVersions', () => {
+    it('returns a version list for a valid correlationId', () => {
+      const result = service.getVersions('mock-correlation-000001');
+
+      expect(result.correlationId).toBe('mock-correlation-000001');
+      expect(result.versions).toHaveLength(1);
+      expect(result.versions[0]).toMatch(/^\d{4}\.\d{2}\.\d+$/);
     });
   });
 });
